@@ -27,16 +27,20 @@ jobs:
 
       - name: Install Project Dependencies
         run: npm install
-        working-directory: ./FSE_Project/ # Keep this, it's correct
+        working-directory: ./FSE_Project/
 
       - name: Pull Vercel Environment Variables
+        # This can remain `production` or `preview` based on what variables you need during build.
+        # It primarily influences the `.env.production.local` file downloaded.
+        # The build itself is controlled by the `vercel build` command's flags.
         run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
+        working-directory: ./FSE_Project/
 
-      - name: Build with Vercel # Keeping this step as it explicitly ran `vite build`
-        run: vercel build --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
+      - name: Build with Vercel
+        # CRITICAL CHANGE HERE: Add --prod flag to vercel build
+        run: vercel build --prod --token=$VERCEL_TOKEN
+        working-directory: ./FSE_Project/
 
       - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
+        working-directory: ./FSE_Project/
