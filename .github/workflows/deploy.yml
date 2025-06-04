@@ -35,7 +35,6 @@ jobs:
       - name: Pull Vercel Environment Variables
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }} # Optional: Your Vercel Org ID
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Optional: Your Vercel Project ID
 
       # Step 4: Build your project (if applicable)
@@ -56,5 +55,4 @@ jobs:
       - name: Deploy to Vercel
         run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }} # Get this from your Vercel dashboard for the project
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Get this from your Vercel dashboard for the project
