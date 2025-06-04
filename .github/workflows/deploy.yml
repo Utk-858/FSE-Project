@@ -3,38 +3,38 @@ name: fse ci-cd
 on:
   push:
     branches:
-      - main # Only triggers for pushes to the 'main' branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env: 
+    env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }} # Ensure this secret is set
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Ensure this secret is set
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Using v4 for latest features/security
+        uses: actions/checkout@v4 # Updated to v4 for good measure
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4 # Using v4 for latest features/security
+        uses: actions/setup-node@v4 # Updated to v4 for good measure
         with:
           node-version: 18
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest # Good practice to specify @latest for global installs
+        run: npm install --global vercel@latest
 
-      # Pull Vercel environment info
-      # Use --environment=production if main branch builds specifically need production variables.
-      # If `preview` variables are sufficient for build, keep as is.
+      # --- NEW STEP HERE ---
+      - name: Install Project Dependencies
+        run: npm install # Or yarn install, pnpm install, depending on your project's lock file
+        working-directory: ./FSE_Project/ # CRITICAL: Ensure this runs in the correct folder
+
       - name: Pull Vercel Environment Variables
         run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN --cwd FSE_Project
 
-      # Build with Vercel (explicitly pre-building for --prebuilt deploy)
       - name: Build with Vercel
         run: vercel build --token=$VERCEL_TOKEN --cwd FSE_Project
 
-      # Deploy to Vercel (production deployment for main branch)
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --cwd FSE_Project # IMPORTANT: Added --prod
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --cwd FSE_Project
