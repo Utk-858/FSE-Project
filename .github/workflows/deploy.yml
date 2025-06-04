@@ -3,29 +3,38 @@ name: fse ci-cd
 on:
   push:
     branches:
-      - main
+      - main # Only triggers for pushes to the 'main' branch
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest   # ✅ Must be a Unix-based runner
+    runs-on: ubuntu-latest
+    env: # Define Vercel token and IDs for the entire job
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }} # Ensure this secret is set
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Ensure this secret is set
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Using v4 for latest features/security
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # Using v4 for latest features/security
         with:
           node-version: 18
 
       - name: Install Vercel CLI
-        run: npm install --global vercel
+        run: npm install --global vercel@latest # Good practice to specify @latest for global installs
 
-      - name: Pull Vercel environment info
-        run: vercel pull --yes --environment=preview --token=$VERCEL_TOKEN --cwd FSE_Project
+      # Pull Vercel environment info
+      # Use --environment=production if main branch builds specifically need production variables.
+      # If `preview` variables are sufficient for build, keep as is.
+      - name: Pull Vercel Environment Variables
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN --cwd FSE_Project
 
+      # Build with Vercel (explicitly pre-building for --prebuilt deploy)
       - name: Build with Vercel
         run: vercel build --token=$VERCEL_TOKEN --cwd FSE_Project
 
+      # Deploy to Vercel (production deployment for main branch)
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --token=$VERCEL_TOKEN --cwd FSE_Project
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --cwd FSE_Project # IMPORTANT: Added --prod
