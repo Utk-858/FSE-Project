@@ -1,46 +1,28 @@
-name: fse ci-cd
+name: Deploy to Vercel
 
 on:
   push:
     branches:
-      - main
+      - main  # Change if using a different default branch
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Install Project Dependencies
+      - name: 📦 Install dependencies
         run: npm install
-        working-directory: ./FSE_Project/
 
-      - name: Pull Vercel Environment Variables
-        # This can remain `production` or `preview` based on what variables you need during build.
-        # It primarily influences the `.env.production.local` file downloaded.
-        # The build itself is controlled by the `vercel build` command's flags.
-        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/
+      - name: 🏗️ Build Vite project
+        run: npm run build
 
-      - name: Build with Vercel
-        # CRITICAL CHANGE HERE: Add --prod flag to vercel build
-        run: vercel build --prod --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/
-
-      - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
-        working-directory: ./FSE_Project/
+      - name: 🚀 Deploy to Vercel
+        run: npx vercel --prod --confirm --token=$VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
