@@ -1,14 +1,13 @@
-name: Deploy to Vercel
+name: fse ci-cd
 
 on:
   push:
     branches:
       - main
-      - dev
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   # ✅ Must be a Unix-based runner
 
     steps:
       - name: Checkout repository
@@ -17,27 +16,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install --global vercel
 
       - name: Pull Vercel environment info
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel pull --yes --environment=preview --token=$VERCEL_TOKEN --cwd FSE_Project
 
       - name: Build with Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build --token=$VERCEL_TOKEN --cwd FSE_Project
 
       - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            vercel deploy --prod --token=$VERCEL_TOKEN --cwd FSE_Project
-          else
-            vercel deploy --token=$VERCEL_TOKEN --cwd FSE_Project
-          fi
+        run: vercel deploy --prebuilt --token=$VERCEL_TOKEN --cwd FSE_Project
