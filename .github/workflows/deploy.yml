@@ -3,7 +3,7 @@ name: fse ci-cd
 on:
   push:
     branches:
-      - main # Only triggers for pushes to the 'main' 
+      - main # Only triggers for  
 
 jobs:
   deploy:
