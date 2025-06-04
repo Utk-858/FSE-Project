@@ -1,58 +1,43 @@
-# Name of the workflow as it appears in GitHub Actions UI
 name: Deploy to Vercel
 
-# Trigger conditions for this workflow
 on:
   push:
     branches:
-      - main # This workflow will run every time code is pushed to the 'main' branch
+      - main
+      - dev
 
-  # Optional: Allows you to manually trigger the workflow from the GitHub Actions UI
-  workflow_dispatch:
-
-# Define one or more jobs
 jobs:
   deploy:
-    # The environment the job will run on
     runs-on: ubuntu-latest
 
-    # Steps define the sequence of commands
     steps:
-      # Step 1: Checkout the code
-      # This action checks out your repository under $GITHUB_WORKSPACE,
-      # so your workflow can access it.
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Step 2: Install Vercel CLI
-      # We need the Vercel CLI to interact with Vercel's API
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+        run: npm install --global vercel
 
-      # Step 3: Pull Vercel environment variables (optional, but good practice for serverless functions)
-      # If your Vercel project has environment variables defined, this downloads them.
-      # The '--token' uses the secret we stored earlier.
-      - name: Pull Vercel Environment Variables
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Pull Vercel Environment
         env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Optional: Your Vercel Project ID
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview --token=$VERCEL_TOKEN --cwd FSE-Project
 
-      # Step 4: Build your project (if applicable)
-      # For Next.js, Create React App etc., this is often done by Vercel automatically.
-      # If your project requires a specific build step *before* Vercel deploy, add it here.
-      # Example for a Node.js project:
-      # - name: Install Dependencies
-      #   run: npm install
-      # - name: Build Project
-      #   run: npm run build
+      - name: Build Project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token=$VERCEL_TOKEN --cwd FSE-Project
 
-      # Step 5: Deploy to Vercel
-      # This is the core deployment command.
-      # --prod: Deploys to the production environment (your main domain).
-      # --token: Uses the Vercel PAT for authentication.
-      # --confirm: Confirms the deployment without requiring manual input.
-      # env: VERCEL_ORG_ID and VERCEL_PROJECT_ID are optional but can help ensure the right project.
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
         env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Get this from your Vercel dashboard for the project
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            vercel deploy --prod --token=$VERCEL_TOKEN --cwd FSE-Project
+          else
+            vercel deploy --token=$VERCEL_TOKEN --cwd FSE-Project
+          fi
