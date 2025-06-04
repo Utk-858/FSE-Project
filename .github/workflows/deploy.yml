@@ -3,15 +3,15 @@ name: fse ci-cd
 on:
   push:
     branches:
-      - main # Only triggers 
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env: # Define Vercel token and IDs for the entire job
+    env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }} # Ensure this secret is set
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }} # Ensure this secret is set
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout repository
@@ -25,24 +25,18 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # --- This is the crucial part ---
-      # Vercel needs your project's dependencies installed to build it.
       - name: Install Project Dependencies
         run: npm install
-        working-directory: ./FSE_Project/
+        working-directory: ./FSE_Project/ # Keep this, it's correct
 
       - name: Pull Vercel Environment Variables
-        # Use --environment=production if main branch builds specifically need production variables.
-        # If `preview` variables are sufficient for build, keep as is.
-        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN --cwd FSE_Project
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
 
-      # --- REMOVE the explicit `vercel build` step ---
-      # Vercel's `deploy` command will automatically run the build.
-      # - name: Build with Vercel
-      #   run: vercel build --token=$VERCEL_TOKEN --cwd FSE_Project
+      - name: Build with Vercel # Keeping this step as it explicitly ran `vite build`
+        run: vercel build --token=$VERCEL_TOKEN
+        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
 
-      # --- Deploy to Vercel (now without --prebuilt) ---
       - name: Deploy to Vercel
-        # Vercel will automatically detect your Vite project and run `npm run build` (or `vite build`)
-        # as part of this deployment process.
-        run: vercel deploy --prod --token=$VERCEL_TOKEN --cwd FSE_Project # IMPORTANT: --prod (for main branch)
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        working-directory: ./FSE_Project/ # <--- ADDED THIS LINE
